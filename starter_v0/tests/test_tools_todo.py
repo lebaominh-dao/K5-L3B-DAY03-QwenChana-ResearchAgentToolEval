@@ -26,6 +26,7 @@ timeline_tool = TOOL_FUNCTIONS["timeline"]
 social_search_tool = TOOL_FUNCTIONS["social_search"]
 policy_tool = TOOL_FUNCTIONS["policy"]
 hn_search_tool = TOOL_FUNCTIONS["hn_search"]
+summarize_tool = TOOL_FUNCTIONS["summarize"]
 
 
 # ---------------- clarify ----------------
@@ -284,3 +285,69 @@ def test_hn_search_timeout_returns_error_dict(fake_http) -> None:
 
     assert result["error"] == "Timeout"
     assert "timed out" in result["message"]
+
+
+# ---------------- NEW TOOL: summarize ----------------
+# 1. happy path — dedupe   2. happy path — score ranking
+# 3. bad input (mode)      4. bad input (limit type)   5. empty / bad items
+
+
+def test_summarize_dedupe_keeps_one_item_per_source() -> None:
+    items = [
+        {"title": "A1", "source": "openai.com", "score": 0.9},
+        {"title": "A2", "source": "openai.com", "score": 0.8},  # trùng domain
+        {"title": "B1", "source": "arxiv.org",  "score": 0.7},
+    ]
+    result = summarize_tool(items=items, mode="dedupe", limit=10)
+
+    assert result["tool"] == "summarize"
+    assert result["mode"] == "dedupe"
+    assert result["input_count"] == 3
+    assert result["output_count"] == 2
+    titles = [i["title"] for i in result["items"]]
+    assert "A1" in titles
+    assert "A2" not in titles           # bị loại vì trùng openai.com
+    assert "B1" in titles
+
+
+def test_summarize_score_ranks_by_keyword_overlap() -> None:
+    items = [
+        {"title": "LLM agent eval framework", "summary": "benchmarks for agents"},
+        {"title": "Weather today",             "summary": "sunny skies"},
+        {"title": "Agent routing in LLM",      "summary": "tool use"},
+    ]
+    result = summarize_tool(items=items, mode="score", query="LLM agent", limit=3)
+
+    assert result["tool"] == "summarize"
+    assert result["query"] == "LLM agent"
+    assert result["output_count"] == 3
+    ranked_titles = [i["title"] for i in result["items"]]
+    # 2 bài có "LLM" và "agent" phải lên trước "Weather today"
+    assert ranked_titles.index("Weather today") > ranked_titles.index("LLM agent eval framework")
+
+
+@pytest.mark.parametrize("mode", ["top", "newest", "", None])
+def test_summarize_invalid_mode_returns_error_dict(mode) -> None:
+    result = summarize_tool(items=[{"title": "x"}], mode=mode)
+
+    assert result["tool"] == "summarize"
+    assert result["error"] == "ValueError"
+    assert "mode" in result["message"]
+
+
+@pytest.mark.parametrize("bad_limit", [True, False, "nhiều", [5]])
+def test_summarize_invalid_limit_returns_error_dict(bad_limit) -> None:
+    result = summarize_tool(items=[], limit=bad_limit)
+
+    assert result["tool"] == "summarize"
+    assert result["error"] == "ValueError"
+    assert "limit" in result["message"]
+
+
+@pytest.mark.parametrize("items", [None, [], [42, "bad", None]])
+def test_summarize_empty_or_bad_items_returns_zero_output(items) -> None:
+    for mode in ("highlights", "by_date", "dedupe", "score"):
+        result = summarize_tool(items=items, mode=mode)
+        assert result["output_count"] == 0
+        assert result["items"] == []
+        assert "error" not in result

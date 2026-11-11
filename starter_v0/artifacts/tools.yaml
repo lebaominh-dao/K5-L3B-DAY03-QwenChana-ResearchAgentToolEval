@@ -135,3 +135,34 @@ tools:
         timeframe: {type: string, enum: [any, day, week, month, year], default: "any", description: "'day' = hôm nay, 'week' = tuần này, 'month' = tháng này, 'year' = năm nay, 'any' = không giới hạn thời gian"}
         limit: {type: integer, default: 5, description: "Số bài cần lấy, từ 1 đến 20"}
       required: [query]
+
+  - name: summarize
+    description: >
+      Lọc và xếp hạng danh sách items đã có từ tool khác (lookup, papers, hn_search...)
+      trước khi trình bày bằng format. Dùng khi agent có nhiều kết quả và cần:
+      giữ top bài theo điểm (highlights), sắp theo ngày mới nhất (by_date),
+      loại trùng lặp theo domain nguồn (dedupe), hoặc xếp hạng theo từ khóa (score).
+      KHÔNG dùng để lấy dữ liệu mới (dùng lookup/papers/hn_search);
+      KHÔNG dùng để trình bày trực tiếp mà không cần lọc (dùng format).
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Danh sách items từ tool khác. Mỗi item là object có thể có: title, url, source, summary, score, date/published."
+          items: {type: object}
+        mode:
+          type: string
+          enum: [highlights, by_date, dedupe, score]
+          default: "highlights"
+          description: "'highlights' = top N theo field score; 'by_date' = mới nhất trước theo date/published; 'dedupe' = bỏ trùng lặp theo source domain; 'score' = xếp hạng theo số từ khóa của query xuất hiện trong title+summary"
+        query:
+          type: string
+          default: ""
+          description: "Từ khóa để xếp hạng, chỉ truyền khi mode='score'"
+        limit:
+          type: integer
+          default: 5
+          description: "Số item đầu ra, từ 1 đến 20"
+      required: [items]

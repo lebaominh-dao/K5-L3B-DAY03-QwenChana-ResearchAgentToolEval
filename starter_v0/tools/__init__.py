@@ -24,6 +24,7 @@ from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
 from .hn_search.tool import hn_search
+from .summarize.tool import summarize
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -44,6 +45,7 @@ TOOL_FUNCTIONS = {
     "paper_text": get_arxiv_paper_text,
     # New tool (team, CP3). Declared in artifacts/tools.yaml in its own version.
     "hn_search": hn_search,
+    "summarize": summarize,
 }
 
 

@@ -102,17 +102,17 @@
       "metadata": {"skill": "multiturn_switch_to_search", "difficulty": "hard", "what_it_tests": "3 turns: đổi từ xem timeline một người sang tìm theo chủ đề → social_search với search_type=Top, không gọi timeline."}
     },
     {
-      "id": "G10_papers_refine_args",
+      "id": "G10_summarize_dedupe_after_lookup",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Tìm paper về diffusion models giúp mình"},
-        {"role": "user", "content": "Chỉ cần 3 bài thôi"},
-        {"role": "user", "content": "Và sắp theo ngày nộp mới nhất nhé"}
+        {"role": "user", "content": "Tìm cho mình 10 tin tức AI mới nhất trên web"},
+        {"role": "user", "content": "Nhiều quá, chỉ giữ lại những bài từ nguồn khác nhau thôi, mỗi nguồn 1 bài"},
+        {"role": "user", "content": "Rồi hiển thị cho mình xem"}
       ],
-      "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "papers", "args": {"max_results": 3, "sort_by": "submittedDate"}}]},
-      "metadata": {"skill": "multiturn_papers_carryover", "difficulty": "hard", "what_it_tests": "3 turns: carry max_results=3 từ lượt 2 và sort_by=submittedDate từ lượt 3 vào cùng một lời gọi papers."}
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "summarize", "args": {"mode": "dedupe"}}]},
+      "metadata": {"skill": "routing_new_tool_summarize", "difficulty": "medium", "what_it_tests": "Tool mới summarize: sau khi lookup trả nhiều kết quả, user muốn loại trùng lặp theo nguồn → gọi summarize(mode='dedupe'), không gọi format trực tiếp hay lookup lại."}
     }
   ]
 }
