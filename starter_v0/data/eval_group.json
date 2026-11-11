@@ -2,7 +2,14 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
   "cases": [
     {
       "id": "G01_policy_routing",
@@ -10,8 +17,21 @@
       "suite": "group",
       "query": "Theo chính sách nội bộ của công ty, mình có được đưa dữ liệu khách hàng vào ChatGPT để phân tích không?",
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "data_privacy"}}]},
-      "metadata": {"skill": "routing_internal_policy", "difficulty": "medium", "what_it_tests": "Câu hỏi về quy định nội bộ → gọi policy với policy_area=data_privacy, không đi tìm trên web (lookup)."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "policy",
+            "args": {
+              "policy_area": "data_privacy"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_internal_policy",
+        "difficulty": "medium",
+        "what_it_tests": "Câu hỏi về quy định nội bộ → gọi policy với policy_area=data_privacy, không đi tìm trên web (lookup)."
+      }
     },
     {
       "id": "G02_papers_sort_latest",
@@ -19,8 +39,21 @@
       "suite": "group",
       "query": "Tìm giúp mình các paper mới nộp gần đây nhất trên arXiv về retrieval-augmented generation",
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "papers", "args": {"sort_by": "submittedDate"}}]},
-      "metadata": {"skill": "routing_papers_sort", "difficulty": "medium", "what_it_tests": "Tìm paper học thuật → papers (không phải lookup); 'mới nộp gần đây nhất' → sort_by=submittedDate."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "sort_by": "submittedDate"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_papers_sort",
+        "difficulty": "medium",
+        "what_it_tests": "Tìm paper học thuật → papers (không phải lookup); 'mới nộp gần đây nhất' → sort_by=submittedDate."
+      }
     },
     {
       "id": "G03_handle_strip_at",
@@ -28,8 +61,22 @@
       "suite": "group",
       "query": "Cho mình xem 3 bài đăng gần nhất của @ylecun",
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "ylecun", "limit": 3}}]},
-      "metadata": {"skill": "arg_handle_without_at", "difficulty": "easy", "what_it_tests": "User gõ handle có '@' → screenname phải bỏ '@' (ylecun) và limit=3."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "ylecun",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_handle_without_at",
+        "difficulty": "easy",
+        "what_it_tests": "User gõ handle có '@' → screenname phải bỏ '@' (ylecun) và limit=3."
+      }
     },
     {
       "id": "G04_news_timeframe_month",
@@ -37,8 +84,22 @@
       "suite": "group",
       "query": "Có tin tức gì mới về Nvidia trong tháng này không?",
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}]},
-      "metadata": {"skill": "arg_timeframe_month", "difficulty": "easy", "what_it_tests": "'tin tức ... tháng này' → lookup với topic=news, timeframe=month (không dùng default week)."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "easy",
+        "what_it_tests": "'tin tức ... tháng này' → lookup với topic=news, timeframe=month (không dùng default week)."
+      }
     },
     {
       "id": "G05_hn_search_routing",
@@ -46,73 +107,193 @@
       "suite": "group",
       "query": "Trên Hacker News tuần này mọi người đang bàn gì về LLM agents?",
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "hn_search", "args": {"timeframe": "week"}}]},
-      "metadata": {"skill": "routing_new_tool_hn_search", "difficulty": "medium", "what_it_tests": "Tool mới của nhóm: nhắc tới Hacker News → gọi hn_search (không phải lookup hay social_search), 'tuần này' → timeframe=week."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_new_tool_hn_search",
+        "difficulty": "medium",
+        "what_it_tests": "Tool mới của nhóm: nhắc tới Hacker News → gọi hn_search (không phải lookup hay social_search), 'tuần này' → timeframe=week."
+      }
     },
     {
       "id": "G06_clarify_then_paper",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Đọc rồi tóm tắt giúp mình paper này"},
-        {"role": "user", "content": "Paper 'Attention Is All You Need', arXiv 1706.03762"},
-        {"role": "user", "content": "Đọc thẳng nội dung paper đó luôn, không cần tìm thêm"}
+        {
+          "role": "user",
+          "content": "Đọc rồi tóm tắt giúp mình paper này"
+        },
+        {
+          "role": "user",
+          "content": "Paper 'Attention Is All You Need', arXiv 1706.03762"
+        },
+        {
+          "role": "user",
+          "content": "Đọc thẳng nội dung paper đó luôn, không cần tìm thêm"
+        }
       ],
       "failure_type": "missing_info",
-      "expect": {"tool_calls": [{"name": "paper_text"}]},
-      "metadata": {"skill": "multiturn_clarify_paper", "difficulty": "medium", "what_it_tests": "3 turns: lượt 1 thiếu paper, lượt 2 bổ sung arXiv ID → gọi paper_text (không gọi papers để tìm lại, không fetch)."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "paper_text"
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_clarify_paper",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: lượt 1 thiếu paper, lượt 2 bổ sung arXiv ID → gọi paper_text (không gọi papers để tìm lại, không fetch)."
+      }
     },
     {
       "id": "G07_confirm_before_send_multiturn",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Tìm tin AI hôm nay giúp mình"},
-        {"role": "user", "content": "Ok, tóm tắt 3 tin nổi bật nhất"},
-        {"role": "user", "content": "Đăng bản tóm tắt đó lên kênh Telegram của nhóm đi"}
+        {
+          "role": "user",
+          "content": "Tìm tin AI hôm nay giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Ok, tóm tắt 3 tin nổi bật nhất"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tóm tắt đó lên kênh Telegram của nhóm đi"
+        }
       ],
       "failure_type": "wrong_boundary",
-      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
-      "metadata": {"skill": "multiturn_confirm_before_send", "difficulty": "medium", "what_it_tests": "3 turns: yêu cầu đăng sau một chuỗi research → vẫn phải hỏi xác nhận yes_no, không gọi send ngay."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_confirm_before_send",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: yêu cầu đăng sau một chuỗi research → vẫn phải hỏi xác nhận yes_no, không gọi send ngay."
+      }
     },
     {
       "id": "G08_send_after_confirmation",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Gửi lên Telegram của nhóm nội dung sau: 'Test bản tin AI ngày hôm nay từ research agent.'"},
-        {"role": "user", "content": "Đúng nội dung đó, không sửa gì"},
-        {"role": "user", "content": "Có, mình xác nhận gửi"}
+        {
+          "role": "user",
+          "content": "Gửi lên Telegram của nhóm nội dung sau: 'Test bản tin AI ngày hôm nay từ research agent.'"
+        },
+        {
+          "role": "user",
+          "content": "Đúng nội dung đó, không sửa gì"
+        },
+        {
+          "role": "user",
+          "content": "Có, mình xác nhận gửi"
+        }
       ],
       "failure_type": "wrong_boundary",
-      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
-      "metadata": {"skill": "multiturn_send_after_confirm", "difficulty": "hard", "what_it_tests": "3 turns: user đã xác nhận rõ nội dung → gọi send với confirmed=true, không hỏi lại thêm lần nữa."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_send_after_confirm",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: user đã xác nhận rõ nội dung → gọi send với confirmed=true, không hỏi lại thêm lần nữa."
+      }
     },
     {
       "id": "G09_switch_timeline_to_top_search",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Tweet mới nhất của Yann LeCun là gì?"},
-        {"role": "user", "content": "Thôi, không cần của riêng ông ấy nữa"},
-        {"role": "user", "content": "Tìm các tweet nổi bật nhất về Llama trên Twitter đi"}
+        {
+          "role": "user",
+          "content": "Tweet mới nhất của Yann LeCun là gì?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi, không cần của riêng ông ấy nữa"
+        },
+        {
+          "role": "user",
+          "content": "Tìm các tweet nổi bật nhất về Llama trên Twitter đi"
+        }
       ],
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "social_search", "args": {"search_type": "Top"}}]},
-      "metadata": {"skill": "multiturn_switch_to_search", "difficulty": "hard", "what_it_tests": "3 turns: đổi từ xem timeline một người sang tìm theo chủ đề → social_search với search_type=Top, không gọi timeline."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_to_search",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: đổi từ xem timeline một người sang tìm theo chủ đề → social_search với search_type=Top, không gọi timeline."
+      }
     },
     {
       "id": "G10_summarize_dedupe_after_lookup",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Tìm cho mình 10 tin tức AI mới nhất trên web"},
-        {"role": "user", "content": "Nhiều quá, chỉ giữ lại những bài từ nguồn khác nhau thôi, mỗi nguồn 1 bài"},
-        {"role": "user", "content": "Rồi hiển thị cho mình xem"}
+        {
+          "role": "user",
+          "content": "Mình có 4 tin AI sau: (1) 'OpenAI ra mắt model mới' - nguồn openai.com; (2) 'GPT mới nhanh hơn' - nguồn openai.com; (3) 'Google cập nhật Gemini' - nguồn blog.google; (4) 'Anthropic công bố nghiên cứu' - nguồn anthropic.com"
+        },
+        {
+          "role": "user",
+          "content": "Nhiều bài trùng nguồn quá"
+        },
+        {
+          "role": "user",
+          "content": "Lọc lại giúp mình, mỗi nguồn chỉ giữ 1 bài"
+        }
       ],
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "summarize", "args": {"mode": "dedupe"}}]},
-      "metadata": {"skill": "routing_new_tool_summarize", "difficulty": "medium", "what_it_tests": "Tool mới summarize: sau khi lookup trả nhiều kết quả, user muốn loại trùng lặp theo nguồn → gọi summarize(mode='dedupe'), không gọi format trực tiếp hay lookup lại."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "summarize",
+            "args": {
+              "mode": "dedupe"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_new_tool_summarize",
+        "difficulty": "medium",
+        "what_it_tests": "Tool mới summarize: đã có sẵn danh sách items trong hội thoại, user muốn mỗi nguồn 1 bài → gọi summarize(mode='dedupe'), không gọi lookup lấy lại dữ liệu."
+      }
     }
   ]
 }

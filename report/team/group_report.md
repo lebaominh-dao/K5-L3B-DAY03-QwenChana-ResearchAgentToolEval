@@ -54,6 +54,7 @@ URL: https://stayed-mardi-teeth-internationally.trycloudflare.com/ (Cloudflare T
 | papers | Tìm paper trên arXiv | không |
 | paper_text | Tải PDF arXiv và trích text | không |
 | **hn_search** | Tìm bài thảo luận trên Hacker News (Algolia HN API, không cần key), lọc theo `timeframe`, sắp theo `relevance`/`date` | **có** |
+| **summarize** | Lọc và xếp hạng danh sách `items` đã lấy từ các tool khác trước khi trình bày bằng `format` | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
