@@ -89,6 +89,8 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 - Tóm tắt các tool có sẵn cho nhóm.
 - Cập nhật `tools.yaml` cho v2.
+- Viết tool mới: `summarize` để tóm tắt và trích xuất thông tin có cấu trúc từ danh sách items đã có, có thể lọc, xếp hạng và tổng hợp insight từ nội dung. Đây là một local formatter tool, có thể test hoàn toàn offline
+- Tạo eval case cho tool mới `G10_summarize_dedupe_after_lookup`
 - Tạo bot Telegram và cấu hình `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
 ### Bằng chứng
