@@ -22,13 +22,24 @@ UI Streamlit, link dùng thử cho Team showdown, Phần A của báo cáo nhóm
 - Thêm `streamlit` vào `requirements.txt` và theme `.streamlit/config.toml`.
 - Mở link public bằng Cloudflare Tunnel.
 - Viết Phần A (A1, A2, A3) của `group_report.md`.
-- Chạy `chat.py` live 5 lượt với prompt v2 và viết bảng B4.
-- Phát hiện agent v2 tự đặt `confirmed=true` khi gọi `send` dù user chưa xác nhận. Đã báo nhóm để sửa ở v3.
+- Thiết kế lại UI: chat ở giữa, sidebar tool, câu hỏi mẫu, nút Cài đặt; gộp tính năng chọn snapshot `artifacts/versions/<v>` của Minh vào UI mới khi rebase; thêm icon cho tool mới `hn_search`, `summarize`; câu hỏi mẫu đồng bộ với A3 và chỉ giữ câu đã chạy đúng ở v4.
+- Chat live bằng `chat.py`: 5 lượt với v2 và 9 lượt với v4, viết bảng B4 so sánh hai version.
+- Phát hiện agent v2 tự đặt `confirmed=true` khi gọi `send` dù user chưa xác nhận. Đã báo nhóm, v3 sửa bằng rule xin xác nhận trước.
 - Phát hiện case R04 PASS dù URL `https://openai.com/blog/gpt-5` đã 404, vì eval chỉ chấm routing, không chấm nội dung.
 
 ## 4. Bằng chứng
 
-- Commit: 91056b61e79012bf0d9c0631ccc6a18838853f65, b9c0520c4011d065f24c4a887d02b774c180aef4, 21e26858f6d8a3798a40dd9eeeeaba7c2b72370b, 8330a224127a085752ef8ac867cffd4674a06d49, 48245064710f2fa3908505388d1a5e98aefc836e
+- Commit:
+  - `91056b6` UI Streamlit bản đầu
+  - `b9c0520` thiết kế lại UI, gộp tính năng chọn snapshot
+  - `21e2685` Phần A, bảng B4 v2, transcript v2
+  - `8330a22` báo cáo cá nhân
+  - `4824506` icon tool mới trong UI, transcript và bảng B4 v4
+- Transcript:
+  - `starter_v0/transcripts/v2_openrouter_20261111T004058101246.transcript.json` (chat.py, v2, 5 lượt)
+  - `starter_v0/transcripts/v4_openrouter_20261111T094443610365.transcript.json` (chat.py, v4, 9 lượt)
+  - `starter_v0/transcripts/v2_openrouter_ui_20261111T002104008525.transcript.json` (UI, v2)
+
 
 ## 5. Tự đánh giá
 
