@@ -5,7 +5,7 @@
 - Tên nhóm: QwenChana
 - Lớp: L3B
 - Repo nhóm: `K5-L3B-DAY03-QwenChana-ResearchAgentToolEval`
-- URL repo, nhánh nộp, commit chốt:
+- URL repo, nhánh nộp, commit chốt: https://github.com/lebaominh-dao/K5-L3B-DAY03-QwenChana-ResearchAgentToolEval, main, 292e757011190dd84d1faac0e1c11c6f38c4fe6b
 
 ## Thành viên
 
