@@ -27,8 +27,16 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 ## 4. Bằng chứng
 
 - File/commit/PR:
+    - Commit `eba2518`
+    - tools/summarize
+    - Eval case `G10_summarize_dedupe_after_lookup` trong eval_group.json
+
 - AI/công cụ đã dùng và cách tự kiểm tra kết quả:
+    - Sử dụng Antigravity để giải thích cấu trúc báo cáo, gợi ý tool mới và triển khai tool
+    - Tự đối chiếu hướng gợi ý với yêu cầu đề bài
 
 ## 5. Tự đánh giá
 
-...
+- Hoàn thành nhiệm vụ được giao
+- Chưa đánh giá được hiệu quả cụ thể của tool
+
