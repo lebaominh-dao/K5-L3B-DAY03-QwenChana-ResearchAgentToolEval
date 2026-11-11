@@ -14,7 +14,7 @@
 |   1 | Đào Lê Bảo Minh | 2A202604010 | 26ai.dlbminh@vinuni.edu.vn | https://github.com/lebaominh-dao | Trưởng nhóm (A) — setup, chạy eval, version log, eval nhóm |
 |   2 | Trần Trung Kiên | 2A202604014 |  | https://github.com/ttkien0710 | Phân tích lỗi, hypothesis, báo cáo nhóm (B) |
 |   3 | Trần Phú Thái | 2A202604001 | 26ai.thaitp@vinuni.edu.vn | phuthaitran | Tool declaration, tool mới, unit test, Telegram (C) |
-|   4 | Hoàng Xuân Lĩnh | 2A202604017 | <Email> | hxlinh | UI Streamlit, demo, live chat (D) |
+|   4 | Hoàng Xuân Lĩnh | 2A202604017 | 26ai.linhhx@vinuni.edu.vn | hxlinh | UI Streamlit, demo, live chat (D) |
 
 ## Phân công tổng quan
 
