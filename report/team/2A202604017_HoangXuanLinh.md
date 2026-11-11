@@ -8,7 +8,7 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 
 - Họ tên: Hoàng Xuân Lĩnh
 - MSSV: 2A202604017
-- Email:
+- Email: 26ai.linhhx@vinuni.edu.vn
 
 ## 2. Phần việc phụ trách
 
