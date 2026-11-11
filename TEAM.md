@@ -111,8 +111,15 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ### Đóng góp cụ thể
 
-- Viết UI Streamlit, thêm dependency vào `starter_v0/requirements.txt`.
+- Viết UI Streamlit `starter_v0/app.py` (tab Chat + tab Eval runs), thêm `streamlit` vào `requirements.txt`; thiết kế lại giao diện và gộp tính năng chọn snapshot version.
+- Mở link dùng thử bằng Cloudflare Tunnel, viết Phần A của báo cáo nhóm.
+- Chat live bằng `chat.py` với v2 (5 lượt) và v4 (9 lượt), viết bảng B4.
+- Phát hiện từ chat live: v2 tự đặt `confirmed=true` khi gửi Telegram; v4 hỏi xác nhận đúng nhưng không truyền `confirmed=true` sau khi user đồng ý.
+
 
 ### Bằng chứng
 
-- Commit: `91056b6` (feat: ui).
+- Commit: `91056b6` (UI), `b9c0520` (redesign UI + chọn snapshot), `21e2685` (Phần A, B4 v2), `4824506` (UI tool mới, B4 v4).
+- Transcript: `starter_v0/transcripts/v2_openrouter_20261111T004058101246.transcript.json`, `starter_v0/transcripts/v4_openrouter_20261111T094443610365.transcript.json`.
+- Báo cáo cá nhân: `report/team/2A202604017_HoangXuanLinh.md`.
+
