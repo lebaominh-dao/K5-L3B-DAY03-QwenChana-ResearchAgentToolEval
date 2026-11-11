@@ -28,8 +28,7 @@ UI Streamlit, link dùng thử cho Team showdown, Phần A của báo cáo nhóm
 
 ## 4. Bằng chứng
 
-- File/commit/PR:
-- AI/công cụ đã dùng và cách tự kiểm tra kết quả:
+- Commit: 91056b61e79012bf0d9c0631ccc6a18838853f65, b9c0520c4011d065f24c4a887d02b774c180aef4, 21e26858f6d8a3798a40dd9eeeeaba7c2b72370b, 8330a224127a085752ef8ac867cffd4674a06d49, 48245064710f2fa3908505388d1a5e98aefc836e
 
 ## 5. Tự đánh giá
 
