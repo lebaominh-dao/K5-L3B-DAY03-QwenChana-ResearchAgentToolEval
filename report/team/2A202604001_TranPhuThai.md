@@ -13,6 +13,7 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 ## 2. Phần việc phụ trách
 
 - Viết lại description và convention args trong `starter_v0/artifacts/tools.yaml`.
+- Viết tool mới (`tools/summarize/tool.py` + `TOOL.md`), đăng ký trong `tools/__init__.py` và `tools.yaml`.
 - Viết ≥ 3 unit test cho tool mới trong `starter_v0/tests/test_tools_todo.py`.
 - Cấu hình bot và private channel Telegram.
 
@@ -27,7 +28,8 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 ## 4. Bằng chứng
 
 - File/commit/PR:
-    - Commit `eba2518`
+    - Commit `fcad954` (Update tools từ v1 lên v2)
+    - Commit `eba2518` (Tạo tool mới summarize)
     - tools/summarize
     - Eval case `G10_summarize_dedupe_after_lookup` trong eval_group.json
 
