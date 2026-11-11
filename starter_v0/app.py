@@ -64,14 +64,18 @@ TOOL_INFO = {
     "policy": ("📚", "Tra chính sách nội bộ của công ty"),
     "papers": ("🎓", "Tìm paper trên arXiv"),
     "paper_text": ("📑", "Đọc nội dung PDF của paper arXiv"),
+    # Tool nhóm tự viết
+    "hn_search": ("🟧", "Tìm bài thảo luận trên Hacker News"),
+    "summarize": ("🧹", "Lọc, xếp hạng, loại trùng kết quả trước khi trình bày"),
 }
 
-# Câu hỏi mẫu hiện dưới khung chat. Sửa danh sách này khi có tool mới hoặc prompt mới.
+# Câu hỏi mẫu hiện dưới khung chat, đồng bộ với mục A3 của group_report.md.
+# Chỉ giữ câu đã chạy đúng ở v4 (R01 "Sam Altman" vẫn FAIL nên không đưa vào).
 SAMPLE_QUESTIONS = [
-    "Tweet mới nhất của Sam Altman là gì?",
-    "Tin tức AI nổi bật trong tuần này?",
+    "Tin tức AI hôm nay có gì nổi bật?",
+    "Tweet mới nhất của Elon Musk là gì?",
+    "Trên Hacker News tuần này mọi người đang bàn gì về LLM agents?",
     "Tìm 3 paper mới nhất về LLM agents trên arXiv",
-    "Chính sách công ty về trích dẫn nguồn là gì?",
     "Tóm tắt 5 tweet mới nhất giúp mình",
     "Đăng bản tin AI hôm nay lên Telegram",
 ]
