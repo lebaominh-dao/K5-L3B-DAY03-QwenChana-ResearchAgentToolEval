@@ -10,7 +10,7 @@
 ## 2. Phần việc phụ trách
 
 - Setup repo nhóm, `.env`, preflight provider, `pytest`.
-- Chạy toàn bộ eval (base v0–v4, group v3–v4), kiểm tra run hợp lệ (`provider_error_cases = 0`, `measured_cases = total_cases`) và ghi `starter_v0/artifacts/version_log.csv`.
+- Chạy eval base v0–v4 và group v3–v4, kiểm tra run hợp lệ (`provider_error_cases = 0`, `measured_cases = total_cases`) và ghi `starter_v0/artifacts/version_log.csv`. Run v5 do Trần Phú Thái (C) tự chạy và ghi version log; tôi review rồi merge.
 - Là người duy nhất sửa `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, theo hypothesis của B, mỗi version một giả thuyết.
 - Viết 10 case eval nhóm trong `starter_v0/data/eval_group.json`.
 - Điều phối, phân công, merge nhánh và push bản nộp.
@@ -30,6 +30,14 @@
   - Thêm `scripts/snapshot_version.py` và snapshot `artifacts/versions/v0`–`v4`, hash khớp run JSON.
   - Thêm dropdown chọn version trong `app.py`, để transcript ghi đúng prompt/tools đã dùng.
 - **Telegram:** kiểm tra cấu hình bằng lệnh chỉ đọc (`getChat`), phát hiện chat ID ban đầu là chat cá nhân và yêu cầu đổi sang private channel của nhóm.
+- **Review v5 của C:**
+  - Phát hiện case G10 bản đầu (`summarize` sau `lookup`) không thể PASS: `run_eval.py` chỉ đưa lời user ở các lượt trước vào ngữ cảnh, không có kết quả `lookup`, nên model không có `items` để lọc và sẽ gọi `lookup` lại.
+  - Đề xuất đưa sẵn danh sách tin vào lời user và bỏ chữ "hiển thị" ở lượt cuối (tránh gọi thêm `format`). Sau khi C sửa, G10 PASS với `summarize(mode="dedupe")`.
+  - Kiểm tra run v5: hash khớp file hiện tại, version log đủ 11 cột, chỉ G10 đổi trong `eval_group.json`.
+- **Merge và quản lý nhánh:**
+  - Merge nhánh `hxlinh` (UI mới, transcript, báo cáo của D) vào `dlbm`, gộp tay 3 conflict trong `group_report.md`: giữ bảng tool có `hn_search`, lấy link tunnel và bảng B4 thật của D.
+  - Kiểm tra transcript của D ghi hash `v2+pb705ce373602+t6be54f7980b5`, khác run v2. Chứng minh do Windows đổi xuống dòng sang CRLF: đổi snapshot v2 sang CRLF rồi tính SHA-256 thì ra đúng hash này. Ghi chú vào B4.
+  - Sau khi tôi `rebase` nhánh `dlbm` (đã push) lên nhánh của C và D, lịch sử bị lệch với GitHub và không push được nếu không force. Tôi đưa `dlbm` về bản trên GitHub, merge lại bằng merge commit và push bình thường. Nội dung giống hệt, không mất commit nào, không force push.
 - **Báo cáo:**
   - Viết `TEAM.md` (phân công theo rubric).
   - Viết các mục 1, 2 (Phần A), 3, 5, 7, 8 và B5/B5a (UI, bonus) của `group_report.md`.
@@ -47,6 +55,9 @@
   - `8efc190` (v3 runs)
   - `f1e6069` (v4: khai báo `hn_search`, G05)
   - `15e52e6` (v4 runs)
+  - `8e2585c` (hoàn thiện báo cáo nhóm: Phần A, mục 3, 5, 7, 8, B5/B5a; báo cáo cá nhân)
+  - `e43fbae` (merge nhánh `hxlinh`, gộp conflict `group_report.md`)
+  - `f489128` (merge lại nhánh của C và D sau sự cố rebase, push không force)
 - **Run:**
   - `starter_v0/runs/v0_B_base_openrouter_20261110T173925903234.json`
   - `starter_v0/runs/v1_B_base_openrouter_20261110T185630444201.json`
@@ -75,10 +86,11 @@
   - Ghi trung thực các version không tăng điểm (v2, v3) và mức tăng v4 phần lớn do dao động của model.
 - **Chưa tốt:**
   - Để các thành viên làm trên nhiều nhánh mà không có quy ước merge từ đầu, dẫn tới sự cố `tools.yaml`.
-  - Nhiều commit của thành viên khác đứng tên tôi, gây khó cho việc tính đóng góp cá nhân.
+  - Các thành viên không làm task của mình: chưa chặt phần này, người này làm task người kia và ngược lại, dẫn đến commit không đến từ thành viên với role tương ứng ban đầu, gây khó cho việc tính đóng góp cá nhân.
   - Mỗi version chỉ chạy một lần nên không đo được độ dao động (R13, M06).
-  - Rule v3 gộp "hỏi nội dung" và "xin xác nhận" vào một câu, gây lỗi `response_type` ở R12/G07.
+  - Dùng `git rebase` trên nhánh đã push, làm lịch sử lệch với GitHub. Rút kinh nghiệm: với nhánh đã push thì dùng `merge`, và không bao giờ force push.
 - **Học được:**
   - Fix hành vi chung thuộc prompt, fix cách gọi tool thuộc tool declaration.
   - Description quá cụ thể có thể gây regression (R01 ở v2).
   - Eval chỉ đo lựa chọn tool và args, còn chất lượng output cần unit test và review thủ công.
+  - Eval case phải khớp với cách harness dựng ngữ cảnh. Case nhiều lượt không thể kỳ vọng model dùng kết quả tool của lượt trước khi harness không đưa kết quả đó vào (G10).
