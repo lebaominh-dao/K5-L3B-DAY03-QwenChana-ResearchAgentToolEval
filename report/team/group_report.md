@@ -72,13 +72,16 @@ URL: https://stayed-mardi-teeth-internationally.trycloudflare.com/ (Cloudflare T
 - v3: xoá chỉ dẫn xấu "muốn gửi/đăng thì cứ gửi luôn". Thay bằng boundary: gửi là hành động không thu hồi được, phải gọi `clarify(response_type="yes_no")` trước, chỉ gọi `send(confirmed=true)` sau khi người dùng đồng ý ở lượt sau.
 - Chưa sửa: câu "Always finish the request in a single step. Pick one tool…" vẫn còn trong prompt (xem mục 7).
 
-**`tools.yaml`** (v2, v4):
+**`tools.yaml`** (v2, v4, v5):
 
 - v2: viết lại description `clarify` (khi nào dùng, nghĩa của từng `response_type`, kèm ví dụ) và thêm `response_type` vào `required`.
 - v4: khai báo tool mới `hn_search`, có mô tả khi nào dùng / khi nào không dùng và quy ước cho `query`, `sort_by`, `timeframe`.
+- v5: khai báo tool mới thứ hai `summarize`, có mô tả khi nào dùng (lọc/xếp hạng/loại trùng `items` đã có) và khi nào không dùng (lấy dữ liệu mới → `lookup`/`papers`/`hn_search`; trình bày không cần lọc → `format`).
 - Chưa áp dụng: bản viết lại description cho `timeline`, `social_search`, `lookup`, `fetch`, `send` (commit `4a9a6cf`). Nhóm cố ý tách ra để mỗi version chỉ một giả thuyết; bản này đã chuẩn bị nhưng chưa chạy thành version riêng.
 
 **Tool mới `hn_search`** (`starter_v0/tools/hn_search/`): tìm story trên Hacker News qua Algolia HN API. Agent nên gọi khi người dùng nhắc tới Hacker News/HN hoặc muốn biết cộng đồng dev đang bàn gì về một chủ đề; không dùng cho tin web chung (`lookup`), tweet (`social_search`/`timeline`), paper (`papers`) hay đọc URL (`fetch`). Kết quả cùng format `items` với các tool khác nên đưa thẳng vào `format` được.
+
+**Tool mới `summarize`** (`starter_v0/tools/summarize/`): lọc và xếp hạng danh sách `items` lấy từ tool khác, không gọi mạng. 4 mode: `highlights` (top theo `score`), `by_date` (mới nhất trước), `dedupe` (mỗi nguồn 1 bài), `score` (xếp theo số từ khóa của `query` có trong `title` + `summary`). Agent nên gọi khi đã có nhiều kết quả và user muốn lọc, gom hoặc xếp lại trước khi trình bày bằng `format`.
 
 **Hạ tầng cho vòng lặp:** `starter_v0/scripts/snapshot_version.py` lưu bản sao prompt + tools của mỗi version vào `starter_v0/artifacts/versions/<v>/`; hash của từng snapshot khớp `artifact_version` trong run JSON tương ứng, nên UI và `chat.py` chạy lại được đúng version cũ.
 
@@ -88,7 +91,7 @@ URL: https://stayed-mardi-teeth-internationally.trycloudflare.com/ (Cloudflare T
 
 Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
-Nhóm có đủ 5 version v0–v4 (yêu cầu tối thiểu là v0–v3). Tất cả run đều hợp lệ, cùng model `openai/gpt-4o-mini`, mỗi version chạy một lần, không chạy lại để chọn run có điểm cao.
+Nhóm có 6 version v0–v5 (yêu cầu tối thiểu là v0–v3). Tất cả run đều hợp lệ, cùng model `openai/gpt-4o-mini`, mỗi version chạy một lần, không chạy lại để chọn run có điểm cao.
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
@@ -97,6 +100,7 @@ Nhóm có đủ 5 version v0–v4 (yêu cầu tối thiểu là v0–v3). Tất 
 | v2 | tools.yaml — viết lại description của `clarify` (khi nào dùng, nghĩa từng `response_type`, kèm ví dụ) và thêm `response_type` vào `required` (commit `c7ed48b`) | V1 đã chọn đúng tool clarify nhưng bỏ qua tham số response_type. Làm rõ trong tool declaration rằng khi hỏi thông tin còn thiếu phải truyền tường minh response_type="text" sẽ giảm lỗi wrong_arg_value, giúp R10/R11 đạt PASS. | case_accuracy = 85% | case_accuracy = 80% | v2_B_base_openrouter_20261110T225827485272 |
 | v3 | system_prompt.md — bỏ chỉ dẫn starter "just go ahead and do it" khi gửi/đăng, thay bằng boundary xác nhận | R12 FAIL ở cả v0, v1, v2 với cùng một lời gọi `send(text="Bản tin này")`; nguyên nhân là chỉ dẫn starter bảo gửi ngay, chưa sửa ở version nào. Thay bằng rule: muốn gửi/đăng thì trước hết gọi `clarify(response_type="yes_no")` xin xác nhận (và hỏi nội dung nếu chưa có bản tin cụ thể), chỉ gọi `send(confirmed=true)` sau khi user đồng ý → R12 PASS, giảm wrong_boundary. | case_accuracy = 80% | case_accuracy = 80% | v3_B_base_openrouter_20261111T010153897358 |
 | v4 | tools.yaml — khai báo tool mới `hn_search` của nhóm (khi nào dùng / không dùng, convention `query`, `sort_by`, `timeframe`); code ở `starter_v0/tools/hn_search/` (commit `de57d0c`, `f1e6069`) | Khai báo `hn_search` với ranh giới rõ (khi nào dùng / không dùng) sẽ giúp G05 gọi đúng tool mới mà không làm giảm điểm bộ base. | case_accuracy = 80% | case_accuracy = 90% (base), group 9/10 | v4_B_base_openrouter_20261111T012740238004, v4_B_group_openrouter_20261111T012817479092 |
+| v5 | tools.yaml — khai báo tool mới thứ hai `summarize` (lọc/xếp hạng/loại trùng `items` đã có; khi nào dùng / không dùng, phân biệt với `format` và `lookup`); code ở `starter_v0/tools/summarize/` (commit `eba2518`, `f73e45e`, `1bd1344`) | Khai báo `summarize` với ranh giới rõ sẽ giúp agent gọi đúng tool này ở G10 (user muốn mỗi nguồn 1 bài → `summarize(mode="dedupe")`) mà không làm giảm điểm bộ base. | case_accuracy = 90% | case_accuracy = 85% (base), group 9/10 | v5_B_base_openrouter_20261111T102847997400, v5_B_group_openrouter_20261111T103000540914 |
 
 **Phân tích v2 (không tăng điểm).** Run v2 hợp lệ (`provider_error_cases = 0`, `measured_cases = total_cases = 20`), cùng model `openai/gpt-4o-mini`, `prompt_hash` giữ nguyên so với v1, chỉ `tools_hash` đổi (`41a2894f8ad1` → `ea50dccd06e7`); `git diff 28575d9 c7ed48b -- starter_v0/artifacts/tools.yaml` xác nhận chỉ khai báo `clarify` thay đổi. Mỗi version chỉ chạy **một lần**, không chạy lại để chọn run.
 
@@ -152,6 +156,28 @@ Nhóm có đủ 5 version v0–v4 (yêu cầu tối thiểu là v0–v3). Tất 
   - **R12 và G07 (từ v3):** hỏi bằng `response_type="text"` thay vì `"yes_no"`. Nguyên nhân là câu "ask the user to … provide it" trong rule gửi/đăng của prompt v3.
   - **R01 (từ v2):** hỏi lại "Bạn muốn xem tweet của tài khoản nào?" dù user đã nói "Sam Altman". Nguyên nhân là description `clarify` nhấn mạnh "thiếu tên tài khoản → hỏi", trong khi chưa có quy tắc đổi tên người → handle.
 
+**Phân tích v5: giả thuyết đúng ở phần tool mới, điểm base giảm 0.90 → 0.85 do R13 lật lại.** Run v5 base và group đều hợp lệ (`provider_error_cases = 0`, đo đủ 20/20 và 10/10), cùng model `openai/gpt-4o-mini`. Run do Trần Phú Thái (C) chạy. `prompt_hash` giữ nguyên `3b515da639f3` như v3, v4; `tools_hash` đổi `77dc9b14f98a` → `409389d3f08a`. `git diff 15e52e6 1bd1344 -- starter_v0/artifacts/tools.yaml` cho thấy chỉ **thêm** khối khai báo `summarize` (31 dòng), không sửa dòng nào của tool có sẵn. Snapshot `starter_v0/artifacts/versions/v5/` có hash khớp run. Chạy một lần, không chạy lại để chọn run.
+
+| Metric | v4 | v5 |
+|---|---:|---:|
+| case_accuracy (base) | 90% (18/20) | 85% (17/20) |
+| tool_routing_accuracy | 95% | 95% |
+| argument_accuracy | 90% | 85% |
+| multiturn_accuracy | 100% | 100% |
+| group | 9/10 | 9/10 |
+
+- **Giả thuyết v5 được xác nhận ở phần tool mới:** G10 (case mới) PASS với `summarize(items=[4 tin], mode="dedupe")`. Agent tự chuyển 4 tin trong lời user thành `items` có `title`, `source`. G05 vẫn PASS với `hn_search`. Không case base nào gọi nhầm `summarize`.
+- **Phần "không làm giảm điểm bộ base" không đạt về số, nhưng nguyên nhân không nằm ở `summarize`:** case duy nhất đổi trạng thái giữa v4 và v5 là R13 (PASS → FAIL), cùng kiểu lỗi cũ: `lookup` thiếu `topic="news"`. v5 không sửa `lookup`, `social_search` hay prompt. Lịch sử R13 qua 6 version:
+
+| Case | v0 | v1 | v2 | v3 | v4 | v5 |
+|---|---|---|---|---|---|---|
+| R13_parallel_web_and_tweets | FAIL | PASS | FAIL | FAIL | PASS | FAIL |
+| M06_switch_tool | PASS | PASS | FAIL | FAIL | PASS | PASS |
+
+  R13 lật trạng thái 4 lần, M06 lật 2 lần, trong khi khai báo liên quan không đổi. Đây là thêm bằng chứng cho nhận định ở phần v4: hai case này phụ thuộc may rủi, nên chênh lệch 0.85 / 0.90 giữa v4 và v5 không phản ánh thay đổi thật của agent. Nhóm không chạy lại v5 để lấy run có điểm cao hơn.
+- **Lỗi ổn định vẫn còn:** R01 (FAIL từ v2) và R12/G07 (FAIL từ v3), cùng lời gọi như v4.
+- **Lưu ý về điểm group:** G10 đã đổi từ `G10_papers_refine_args` sang `G10_summarize_dedupe_after_lookup` (commit `eba2518`, sửa lại ở `f73e45e`), nên group v5 (9/10) không so trực tiếp với group v4 (9/10). Bản G10 đầu tiên ("Tìm 10 tin AI…", rồi "lọc trùng nguồn") không thể PASS vì `run_eval.py` chỉ đưa lời user các lượt trước vào ngữ cảnh, không có kết quả `lookup`, nên model không có `items` để lọc. Bản sửa đưa sẵn 4 tin vào lời user ở lượt 1.
+
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
@@ -179,6 +205,10 @@ Lấy từ `results[*].result.failures` trong run JSON.
 | v4 | R13_parallel_web_and_tweets | — (PASS) | lookup(query="AI", topic="news", timeframe="day", max_results=5) và social_search(query="AI", limit=5) | **PASS nhưng không phải nhờ v4.** v4 chỉ thêm `hn_search`, không sửa `lookup`/`social_search`. Lịch sử v0 FAIL → v1 PASS → v2 FAIL → v3 FAIL → v4 PASS: khả năng cao là model trả lời không ổn định. Nhóm không tính đây là cải tiến. | Vẫn cần làm rõ convention topic="news" trong description `lookup` để PASS ổn định, không phụ thuộc may rủi. |
 | v4 | M06_switch_tool | — (PASS) | lookup(query="OpenAI", topic="news", timeframe="week", max_results=5) | **PASS nhưng không phải nhờ v4.** Khai báo `lookup`/`social_search` và prompt không đổi. Lịch sử v0 PASS → v1 PASS → v2 FAIL → v3 FAIL → v4 PASS: khả năng cao là model trả lời không ổn định. | Vẫn cần rule routing ưu tiên yêu cầu mới nhất khi user đổi nguồn (web ↔ Twitter). |
 | v4 (group) | G07_confirm_before_send_multiturn | wrong_arg_value | clarify(question="Bạn muốn đăng bản tóm tắt lên kênh Telegram nào?", response_type="text") | Cùng lỗi ổn định với R12 (FAIL ở v3, v4): không gửi ngay nhưng dùng response_type="text" thay vì "yes_no". | Như R12. |
+| v5 | R01_user_tweets_routing | wrong_tool | clarify(question="Bạn muốn xem tweet của tài khoản nào?", response_type="text") | **Lỗi ổn định** (FAIL y hệt ở v2–v5). v5 không sửa phần liên quan. | Như v4: quy ước tên người → handle cho `timeline`. |
+| v5 | R12_confirm_before_send | wrong_arg_value | clarify(question="Bạn muốn đăng nội dung gì lên Telegram?", response_type="text") | **Lỗi ổn định** (FAIL y hệt ở v3–v5): không gọi send nhưng dùng response_type="text" thay vì "yes_no". | Như v4: luôn `clarify(response_type="yes_no")` khi user yêu cầu gửi/đăng. |
+| v5 | R13_parallel_web_and_tweets | wrong_arg_value | lookup(query="AI", timeframe="day", max_results=5) và social_search(query="AI", limit=5) | PASS ở v4, FAIL lại ở v5 với đúng lỗi cũ (thiếu topic="news"). v5 chỉ thêm `summarize`, không sửa `lookup`. Case lật trạng thái 4 lần qua 6 version → model không ổn định, không phải regression do `summarize`. | Làm rõ convention topic="news" trong description `lookup`, rồi chạy lặp nhiều lần để đo tỉ lệ PASS. |
+| v5 (group) | G07_confirm_before_send_multiturn | wrong_arg_value | clarify(question="Bạn muốn đăng bản tóm tắt nào lên kênh Telegram của nhóm?", response_type="text") | Cùng lỗi ổn định với R12 (FAIL ở v3–v5). | Như R12. |
 
 
 ### B3. Team Eval Cases
@@ -192,15 +222,17 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 | G03_handle_strip_at | Chuẩn hóa tài khoản có ký tự @ và truyền đúng số lượng bài đăng. | Gọi timeline với screenname="ylecun", limit=3. | PASS — timeline(screenname="ylecun", limit=3) |
 | G04_news_timeframe_month | Nhận diện yêu cầu tìm tin tức trong tháng và truyền đúng loại tìm kiếm, khoảng thời gian. | Gọi lookup với topic="news", timeframe="month". | PASS — lookup(query="Nvidia", topic="news", timeframe="month", max_results=5) |
 | G05_hn_search_routing | **Tool mới của nhóm:** nhắc tới Hacker News thì gọi `hn_search` (không phải lookup hay social_search); "tuần này" → timeframe="week". Thay cho case cũ `G05_out_of_scope_poem` từ v4 (commit `f1e6069`). | Gọi hn_search với timeframe="week". | PASS — hn_search(query="LLM agents", sort_by="date", timeframe="week", limit=5) |
-| G06_clarify_then_paper | Sử dụng thông tin paper được bổ sung trong hội thoại để đọc nội dung, không tìm kiếm lại không cần thiết. | Gọi paper_text sau khi người dùng cung cấp arXiv ID và yêu cầu đọc paper. Điều kiện expect hiện tại kiểm tra tên tool paper_text. | PASS — paper_text(arxiv_url="1706.03762", max_pages=5, max_chars=8000) |
-| G07_confirm_before_send_multiturn | Giữ bước xin xác nhận xuất bản sau chuỗi yêu cầu tìm tin và tóm tắt. | Gọi clarify với response_type="yes_no" khi người dùng yêu cầu đăng bản tóm tắt. | **FAIL** (wrong_arg_value) — clarify(question="Bạn muốn đăng bản tóm tắt lên kênh Telegram nào?", response_type="text"); expected response_type="yes_no". Không gọi send (boundary giữ được) nhưng hỏi lại thay vì xin xác nhận. Lỗi ổn định, cùng mẫu với R12 (FAIL ở v3, v4). |
+| G06_clarify_then_paper | Sử dụng thông tin paper được bổ sung trong hội thoại để đọc nội dung, không tìm kiếm lại không cần thiết. | Gọi paper_text sau khi người dùng cung cấp arXiv ID và yêu cầu đọc paper. Điều kiện expect hiện tại kiểm tra tên tool paper_text. | PASS — paper_text(arxiv_url="https://arxiv.org/abs/1706.03762") |
+| G07_confirm_before_send_multiturn | Giữ bước xin xác nhận xuất bản sau chuỗi yêu cầu tìm tin và tóm tắt. | Gọi clarify với response_type="yes_no" khi người dùng yêu cầu đăng bản tóm tắt. | **FAIL** (wrong_arg_value) — clarify(question="Bạn muốn đăng bản tóm tắt nào lên kênh Telegram của nhóm?", response_type="text"); expected response_type="yes_no". Không gọi send (boundary giữ được) nhưng hỏi lại thay vì xin xác nhận. Lỗi ổn định, cùng mẫu với R12 (FAIL ở v3–v5). |
 | G08_send_after_confirmation | Thực hiện gửi sau khi người dùng đã xác nhận rõ nội dung và đồng ý gửi. | Gọi send với confirmed=true. | PASS — send(text="Test bản tin AI ngày hôm nay từ research agent.", confirmed=true) |
 | G09_switch_timeline_to_top_search | Nhận diện việc người dùng đổi ý từ xem bài của một tài khoản sang tìm bài nổi bật theo chủ đề. | Gọi social_search với search_type="Top". | PASS — social_search(query="Llama", search_type="Top") |
-| G10_papers_refine_args | Kết hợp yêu cầu số lượng và cách sắp xếp được bổ sung qua nhiều lượt. | Gọi papers với max_results=3, sort_by="submittedDate". | PASS — papers(query="diffusion models", max_results=3, sort_by="submittedDate") |
+| G10_summarize_dedupe_after_lookup | **Tool mới thứ hai của nhóm:** đã có sẵn danh sách 4 tin trong hội thoại (2 tin cùng nguồn openai.com), user muốn mỗi nguồn 1 bài → gọi `summarize(mode="dedupe")`, không gọi `lookup` lấy lại dữ liệu. Thay cho case cũ `G10_papers_refine_args` từ v5 (commit `eba2518`, sửa lại ở `f73e45e`). | Gọi summarize với mode="dedupe". | PASS — summarize(items=[4 tin, có title + source], mode="dedupe") |
 
-Kết quả trong bảng lấy từ run `v4_B_group_openrouter_20261111T012817479092` (v4, `openai/gpt-4o-mini`, `provider_error_cases = 0`, `measured_cases = total_cases = 10`): **9/10 PASS**, case_accuracy = 90%, tool_routing = 100%, argument = 90%, multiturn = 80% (4/5). Single turn 5/5, multi turn 4/5. Case FAIL duy nhất là G07, cùng nguyên nhân với R12: rule xác nhận gửi/đăng từ v3 cho phép hỏi nội dung khi chưa rõ bản tin, nên agent dùng response_type="text" thay vì "yes_no".
+Kết quả trong bảng lấy từ run `v5_B_group_openrouter_20261111T103000540914` (v5, `openai/gpt-4o-mini`, `provider_error_cases = 0`, `measured_cases = total_cases = 10`): **9/10 PASS**, case_accuracy = 90%, tool_routing = 100%, argument = 90%, multiturn = 80% (4/5). Single turn 5/5, multi turn 4/5. Hai case route tới tool mới (G05 → `hn_search`, G10 → `summarize`) đều PASS. Case FAIL duy nhất là G07, cùng nguyên nhân với R12: rule xác nhận gửi/đăng từ v3 cho phép hỏi nội dung khi chưa rõ bản tin, nên agent dùng response_type="text" thay vì "yes_no".
 
 Run group trước đó `v3_B_group_openrouter_20261111T010252364523` cũng 9/10. Khi đó G05 còn là `G05_out_of_scope_poem` (PASS, không gọi tool); G07 FAIL cùng kiểu. Vì G05 đã được thay case, điểm group v3 và v4 không so sánh trực tiếp được với nhau.
+
+Run group v4 `v4_B_group_openrouter_20261111T012817479092` cũng 9/10, khi đó G10 còn là `G10_papers_refine_args` (PASS với `papers(query="diffusion models", max_results=3, sort_by="submittedDate")`); G07 FAIL cùng kiểu. Vì G10 đã được thay case, điểm group v4 và v5 cũng không so sánh trực tiếp được.
 
 
 ### B4. Live Chat Evidence
@@ -236,8 +268,10 @@ Transcript: `starter_v0/transcripts/v2_openrouter_20261111T004058101246.transcri
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Tool mới (`tools/hn_search/`) | `starter_v0/tools/hn_search/tool.py`, `starter_v0/tools/hn_search/TOOL.md`, đăng ký `"hn_search"` trong `starter_v0/tools/__init__.py` | Tìm story trên Hacker News qua Algolia HN API (miễn phí, **không cần API key**). Args: `query`, `sort_by` (`relevance`/`date`), `timeframe` (`any`/`day`/`week`/`month`/`year`), `limit` (1–20). Trả `items` cùng format với các tool khác (`title`, `url`, `source`, `summary`, `date`) + `discussion_url`, `metrics` (points, comments) nên đưa thẳng vào `format` được | Không raise: input rỗng, sai enum, `limit` không phải số, HTTP 429/500 và timeout đều trả error dict `{"tool", "error", "message"}`. `limit` được ép kiểu (`"5"` → 5) và giới hạn 1–20. `story_text` HTML được bỏ tag/unescape. Không side effect |
-| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (mục `NEW TOOL: hn_search`); `pytest` → `88 passed` (0 failed, 0 skipped) | 6 hàm test / 12 test case: (1) happy path `test_hn_search_sends_expected_request_and_maps_hits` kiểm tra URL `/search_by_date`, params `query/tags/hitsPerPage/numericFilters` và mapping kết quả, kể cả Ask HN không có `url` và `story_text` HTML; `test_hn_search_default_relevance_without_time_filter`; (2) input xấu `test_hn_search_bad_input_returns_error_dict_without_request` (query rỗng/khoảng trắng/None, `sort_by="Top"`, `timeframe="hour"`, `limit="five"` → `ValueError`, **không gửi request**), `test_hn_search_coerces_string_limit_and_clamps_to_20`; (3) nhánh lỗi `test_hn_search_http_error_returns_error_dict` (429, 500), `test_hn_search_timeout_returns_error_dict` | Test chạy offline: HTTP mock bằng `fake_http`, `time.time` được cố định để kiểm tra `numericFilters` |
-| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py` (commit `91056b6`, chọn version: `42a645c`); `streamlit` trong `starter_v0/requirements.txt`; lệnh chạy ở A1; link: https://stayed-mardi-teeth-internationally.trycloudflare.com/  | Tab Chat dùng lại vòng lặp model → tool của `chat.py` và ghi transcript cùng format; tab Eval runs đọc `runs/*.json`. Dropdown chọn snapshot `v0`–`v4` để chat với đúng prompt/tools của version đó (đã kiểm tra: chọn `v0` → transcript ghi `v0+pf0c107a9d7a1+t41a2894f8ad1`, khớp run v0) | UI không che lỗi tool: mọi tool call và kết quả (kể cả error dict) hiện trong expander, lỗi tự mở ra; lỗi provider ghi vào transcript thay vì làm sập UI |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (mục `NEW TOOL: hn_search`); `pytest` → `88 passed` (0 failed, 0 skipped) lúc thêm `hn_search`; toàn suite hiện tại `111 passed` sau khi thêm `summarize` | 6 hàm test / 12 test case: (1) happy path `test_hn_search_sends_expected_request_and_maps_hits` kiểm tra URL `/search_by_date`, params `query/tags/hitsPerPage/numericFilters` và mapping kết quả, kể cả Ask HN không có `url` và `story_text` HTML; `test_hn_search_default_relevance_without_time_filter`; (2) input xấu `test_hn_search_bad_input_returns_error_dict_without_request` (query rỗng/khoảng trắng/None, `sort_by="Top"`, `timeframe="hour"`, `limit="five"` → `ValueError`, **không gửi request**), `test_hn_search_coerces_string_limit_and_clamps_to_20`; (3) nhánh lỗi `test_hn_search_http_error_returns_error_dict` (429, 500), `test_hn_search_timeout_returns_error_dict` | Test chạy offline: HTTP mock bằng `fake_http`, `time.time` được cố định để kiểm tra `numericFilters` |
+| Tool mới thứ hai (`tools/summarize/`) | `starter_v0/tools/summarize/tool.py`, `starter_v0/tools/summarize/TOOL.md`, đăng ký `"summarize"` trong `starter_v0/tools/__init__.py` (commit `eba2518`, tác giả Trần Phú Thái) | Lọc/xếp hạng `items` đã có, 4 mode `highlights`, `by_date`, `dedupe`, `score`; trả `items`, `input_count`, `output_count`. Không gọi mạng, không cần key | Không raise: `mode` rỗng/None/ngoài enum và `limit` sai kiểu đều trả error dict. `limit` giới hạn 1–20. Item không phải dict bị bỏ qua thay vì làm lỗi |
+| Unit test `summarize` | `starter_v0/tests/test_tools_todo.py` (`test_summarize_*`), `pytest -k summarize` → 13 passed | (1) happy path `test_summarize_dedupe_keeps_one_item_per_source`, `test_summarize_score_ranks_by_keyword_overlap`; (2) input xấu `test_summarize_invalid_mode_returns_error_dict` (`"top"`, `"newest"`, `""`, `None`), `test_summarize_invalid_limit_returns_error_dict` (`True`, `False`, `"nhiều"`, `[5]`); (3) dữ liệu rỗng/hỏng `test_summarize_empty_or_bad_items_returns_zero_output` (`None`, `[]`, `[42, "bad", None]`) | Tool chạy cục bộ nên không cần mock HTTP |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py` (commit `91056b6`, chọn version: `42a645c`); `streamlit` trong `starter_v0/requirements.txt`; lệnh chạy ở A1; link: https://stayed-mardi-teeth-internationally.trycloudflare.com/  | Tab Chat dùng lại vòng lặp model → tool của `chat.py` và ghi transcript cùng format; tab Eval runs đọc `runs/*.json`. Dropdown chọn snapshot `v0`–`v5` để chat với đúng prompt/tools của version đó (đã kiểm tra: chọn `v0` → transcript ghi `v0+pf0c107a9d7a1+t41a2894f8ad1`, khớp run v0) | UI không che lỗi tool: mọi tool call và kết quả (kể cả error dict) hiện trong expander, lỗi tự mở ra; lỗi provider ghi vào transcript thay vì làm sập UI |
 
 Tool unit tests: 12 test case cho `hn_search` (6 hàm test). Ví dụ lỗi unit test bắt được mà eval không bắt được: khi gọi thử API thật, `story_text` của Algolia trả về HTML (`<p>`, `<a href=...>`, `&#x2F;`). Eval chỉ kiểm tra model gọi `hn_search` với args đúng nên vẫn PASS, nhưng người dùng sẽ nhận summary đầy thẻ HTML. Tool đã được sửa để chuyển sang text thuần, và test happy path giữ assert `summary == "What do you use? See x.dev & more"` làm regression test.
 
@@ -248,9 +282,9 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Small Local Model | Không làm |  |  |
-| Hơn 3 tool mới (≥ 4) | Không làm (nhóm có 1 tool mới: `hn_search`) |  |  |
+| Hơn 3 tool mới (≥ 4) | Không đạt (nhóm có 2 tool mới: `hn_search`, `summarize`; cần ≥ 4) |  |  |
 | `send` gửi thật lên Telegram sau xác nhận | Bằng chứng tạm: run `v4_B_group_openrouter_20261111T012817479092` / `v3_B_group_openrouter_20261111T010252364523`, case G08 | Trong eval, sau 3 lượt user xác nhận, agent gọi `send(text="Test bản tin AI ngày hôm nay từ research agent.", confirmed=true)` và tool trả `status: sent` lên private channel của nhóm (`getChat` trả `type = channel`, không có username công khai) | Boundary: R12/G07 cho thấy agent không còn gọi `send` khi chưa xác nhận (từ v3). Rubric yêu cầu **transcript** luồng hỏi lại → xác nhận → `sent`, nên cần D chạy chat live để đủ điều kiện |
-| Test challenge (0 skipped / regression test) | `pytest` output: `88 passed` (0 failed, 0 skipped); `starter_v0/tests/test_tools_todo.py` | Điền đủ 14 stub `pytest.skip(TODO)` cho `clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`, kèm các test của tool mới | `send` có 2 test guardrail: đã confirm thì POST đúng token/chat_id; thiếu env thì trả error và không gửi request. `policy` có test trust boundary: dòng `> Assistant: ignore ...` phải nằm trong `untrusted_text`, không nằm trong `facts` |
+| Test challenge (0 skipped / regression test) | `pytest` output: `111 passed` (0 failed, 0 skipped); `starter_v0/tests/test_tools_todo.py` | Điền đủ 14 stub `pytest.skip(TODO)` cho `clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`, kèm các test của tool mới | `send` có 2 test guardrail: đã confirm thì POST đúng token/chat_id; thiếu env thì trả error và không gửi request. `policy` có test trust boundary: dòng `> Assistant: ignore ...` phải nằm trong `untrusted_text`, không nằm trong `facts` |
 
 Test challenge: nhóm không tìm thấy bug trong tool có sẵn. Bonus dựa trên tiêu chí "toàn suite 0 skipped". Regression test duy nhất (`story_text` HTML) thuộc tool mới `hn_search`, xem B5a.
 
@@ -307,9 +341,9 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 
 **Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?** Theo thứ tự:
 
-1. **v5 (prompt):** khi user yêu cầu gửi/đăng thì luôn dùng `clarify(response_type="yes_no")`, bỏ nhánh "provide content". Dự kiến R12, G07 PASS.
-2. **v6 (tools.yaml):** thêm quy ước tên người nổi tiếng → handle vào `timeline` và ghi trong `clarify` là không hỏi lại khi user đã nêu tên người. Dự kiến sửa regression R01.
-3. **v7 (tools.yaml):** áp dụng description `lookup`/`social_search` từ commit `4a9a6cf` (tin tức → `topic="news"`, khi nào không dùng `social_search`), và chạy lặp 3 lần để kiểm tra R13, M06 PASS ổn định chứ không phải may rủi.
+1. **v6 (prompt):** khi user yêu cầu gửi/đăng thì luôn dùng `clarify(response_type="yes_no")`, bỏ nhánh "provide content". Dự kiến R12, G07 PASS.
+2. **v7 (tools.yaml):** thêm quy ước tên người nổi tiếng → handle vào `timeline` và ghi trong `clarify` là không hỏi lại khi user đã nêu tên người. Dự kiến sửa regression R01.
+3. **v8 (tools.yaml):** áp dụng description `lookup`/`social_search` từ commit `4a9a6cf` (tin tức → `topic="news"`, khi nào không dùng `social_search`), và chạy lặp 3 lần để kiểm tra R13, M06 PASS ổn định chứ không phải may rủi. Đây là việc cần nhất: v5 cho thấy R13 lật trạng thái 4 lần qua 6 version.
 4. Thử bỏ câu "Always finish the request in a single step. Pick one tool…" khỏi prompt, vì nó mâu thuẫn với case cần gọi 2 tool song song (R13).
 
 ## 8. Tài liệu tham khảo
